@@ -1,25 +1,71 @@
+import java.util.Random;
+
 
 class State {
-  double[][] world;
+  byte x, y;
 
   State() {
-    world = new double[20][10];
 
-    for(int i = 0; i < 20; ++i) {
-      world[i][5] = -1;
-    }
+  }
+
+  State(byte x, byte y) {
+    if(x < 0) x = 0;
+    if(x > 19) x = 19;
+    if(y < 0) y = 0;
+    if(y > 19) y = 19;
+
+    this.x = x;
+    this.y = y;
   }
 }
 
 class QLearner {
-  double learningRate;
-  double discountRate = 0.9;
+  Random rand;
+  double learningRate = 0.1;
+  double discountRate = 0.97;
 
-  QLearner() {
+  int[] qTable;
 
+  QLearner(Random r) {
+    rand = r;
+    qTable = new int[20 * 10 * 4];
   }
 
   double learn() {
+    State i = new State(); // temp
+    double epsilon = 0.05;
+
+    int action;
+    if(rand.nextDouble() < epsilon) {
+
+      // Explore (pick a random action)
+      action = rand.nextInt(4);
+
+    } else {
+
+      // Exploit (pick the best action)
+      action = 0;
+      for(int candidate = 0; candidate < 4; ++candidate) {
+        if(q(i, candidate) > q(i, action))
+          action = candidate;
+      }
+
+      if(q(i, action) == 0.0)
+        action = rand.nextInt(4);
+
+    }
+
+    // do the action
+    //learn from the experience
+    //reset
+
+  }
+
+  int q(State i, int action) {
+
+  }
+
+  int doAction(int action) {
 
   }
 
