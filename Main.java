@@ -12,7 +12,7 @@ class State {
     if(x < 0) x = 0;
     if(x > 19) x = 19;
     if(y < 0) y = 0;
-    if(y > 19) y = 19;
+    if(y > 9) y = 9;
 
     this.x = x;
     this.y = y;
@@ -62,7 +62,7 @@ class QLearner {
   }
 
   int q(State i, int action) {
-
+    // index = (a+1)(10y + x)
   }
 
   int doAction(int action) {
