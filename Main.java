@@ -17,11 +17,12 @@ class State {
     this.y = y;
   }
 
-  static void validate(State s) {
-    if(s.x < 0) s.x = 0;
-    if(s.x > 9) s.x = 9;
-    if(s.y < 0) s.y = 0;
-    if(s.y > 19) s.y = 19;
+  static boolean validate(State s) {
+    if(s.x < 0) return false;
+    if(s.x > 9) return false;
+    if(s.y < 0) return false;
+    if(s.y > 19) return false;
+    return true;
   }
 }
 
@@ -78,16 +79,19 @@ class QLearner {
   }
 
   void updateQTable(State i, State j, int action) {
-    int index = (xRange * action) + i.x + (xRange * aRange * i.y);
+    int index = action + (aRange * i.y) + (aRange * yRange * i.x);
 
-    //double calculatedReward = reward(j);
     double max = -100000;
     for(int bAction = 0; bAction < 4; ++bAction) {
       max = Math.max(max, q(j, bAction));
     }
 
+    System.out.println(j.x + " " + j.y);
+
     double partialCalulation = reward(j) + discountRate * max;
     double value = (1 - learningRate) * q(i, action) + learningRate * partialCalulation;
+
+    qTable[index] = value;
   }
 
   // Receives an index and returns the Q-value at that location
@@ -112,21 +116,26 @@ class QLearner {
   // Calculates a reward based upon the location of the state
   double reward(State j) {
     if(j.y == 11) {
-      if(j.x <= 5 || j.x >= 6)
-      return -1;
+      if(j.x <= 5 || j.x >= 6) {
+        System.out.println("boundary");
+        return -1;
+      }
     }
 
-    if(j.x == 0 && j.y == 19)
-      return 10;
+    if(j.x == 0 && j.y == 19) {
+      System.out.println("here");
+      return 100;
+    }
     return 0;
   }
 
+  // Finds the best move for a given state
   int bestMove(int x, int y) {
     int startIndex = (aRange * y) + (aRange * yRange * x);
 
     double max = -10000;
     double current;
-    int iMax = 0;
+    int iMax = 2;
     for(int i = 0; i < aRange; ++i) {
       current = qTable[startIndex + i];
       if(current > max) {
@@ -200,10 +209,14 @@ class Main {
 
     QLearner ql = new QLearner(r);
     State s = new State((byte)9, (byte)0);
-    for(int i = 0; i < 100000; ++i) {
+    for(int i = 0; i < 10000; ++i) {
       ql.learn(s);
     }
     m.placeMoves(ql);
     m.print();
+
+    for(int i = 0; i < ql.qTable.length; ++i) {
+      System.out.print(ql.qTable[i] + ", ");
+    }
   }
 }
