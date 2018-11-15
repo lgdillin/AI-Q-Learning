@@ -39,6 +39,9 @@ class QLearner {
 
     rand = r;
     qTable = new double[xRange * yRange * aRange];
+    for(int i = 0; i < qTable.length; ++i) {
+      qTable[i] = 0;
+    }
   }
 
   State learn(State i) {
@@ -122,11 +125,16 @@ class QLearner {
     int startIndex = (aRange * y) + (aRange * yRange * x);
 
     double max = -10000;
-    int i;
-    for(i = 0; i < aRange; ++i) {
-      max = Math.max(max, qTable[startIndex + i]);
+    double current;
+    int iMax = 0;
+    for(int i = 0; i < aRange; ++i) {
+      current = qTable[startIndex + i];
+      if(current > max) {
+        max = current;
+        iMax = i;
+      }
     }
-    return i;
+    return iMax;
   }
 
   //double reward(State i, int action, State j) { return 1; }
@@ -156,6 +164,13 @@ class Main {
   void placeMoves(QLearner ql) {
     for(int i = 0; i < 10; ++i) {
       for(int j = 0; j < 20; ++j) {
+        if(world[i][j] == 'S')
+          continue;
+        else if(world[i][j] == 'G')
+          continue;
+        else if(world[i][j] == '#')
+          continue;
+
         int x = ql.bestMove(i, j);
         if(x == 0)
           world[i][j] = '>';
@@ -185,12 +200,8 @@ class Main {
 
     QLearner ql = new QLearner(r);
     State s = new State((byte)9, (byte)0);
-    for(int i = 0; i < 100000000; ++i) {
+    for(int i = 0; i < 100000; ++i) {
       ql.learn(s);
-
-      if(i % 10000 == 0) {
-
-      }
     }
     m.placeMoves(ql);
     m.print();
