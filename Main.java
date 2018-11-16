@@ -7,6 +7,11 @@ class State {
   State() {
   }
 
+  State(State s) {
+    x = s.x;
+    y = s.y;
+  }
+
   State(byte x, byte y) {
     if(x < 0) x = 0;
     if(x > 9) x = 9;
@@ -15,6 +20,14 @@ class State {
 
     this.x = x;
     this.y = y;
+  }
+
+  static boolean validate(byte x, byte y) {
+    if(x < 0) return false;
+    if(x > 9) return false;
+    if(y < 0) return false;
+    if(y > 19) return false;
+    return true;
   }
 
   static boolean validate(State s) {
@@ -30,7 +43,7 @@ class QLearner {
   Random rand;
   int xRange, yRange, aRange;
   double learningRate = 0.1;
-  double discountRate = 0.97;
+  double discountRate = 0.95;
   double[] qTable;
 
   QLearner(Random r) {
@@ -64,6 +77,11 @@ class QLearner {
         action = rand.nextInt(4);
     }
 
+    // If the action is invalid, pick a different one
+    while(!checkAction(i, action)) {
+      action = rand.nextInt(4);
+    }
+
     // do the action
     State j = doAction(i, action);
 
@@ -86,7 +104,6 @@ class QLearner {
       max = Math.max(max, q(j, bAction));
     }
 
-    System.out.println(j.x + " " + j.y);
 
     double partialCalulation = reward(j) + discountRate * max;
     double value = (1 - learningRate) * q(i, action) + learningRate * partialCalulation;
@@ -96,9 +113,21 @@ class QLearner {
 
   // Receives an index and returns the Q-value at that location
   double q(State i, int action) {
-    //int index = (xRange * action) + i.x + (xRange * aRange * i.y);
     int index = action + (aRange * i.y) + (aRange * yRange * i.x);
     return qTable[index];
+  }
+
+  // Checks if the given action and state are valid
+  boolean checkAction(State i, int action) {
+    byte x = i.x;
+    byte y = i.y;
+    if(action == 0) ++x;
+    else if(action == 1) ++y;
+    else if(action == 2) --x;
+    else --y;
+    if(State.validate(x, y))
+      return true;
+    return false;
   }
 
   // Receives a state, modifies it with the action and returns a new modified state
@@ -109,22 +138,19 @@ class QLearner {
     else if(action == 1) ++j.y;
     else if(action == 2) --j.x;
     else --j.y;
-    State.validate(j);
     return j;
   }
 
   // Calculates a reward based upon the location of the state
   double reward(State j) {
     if(j.y == 11) {
-      if(j.x <= 5 || j.x >= 6) {
-        System.out.println("boundary");
+      if(j.x < 5 || j.x > 6) {
         return -1;
       }
     }
 
     if(j.x == 0 && j.y == 19) {
-      System.out.println("here");
-      return 100;
+      return 2;
     }
     return 0;
   }
@@ -135,7 +161,7 @@ class QLearner {
 
     double max = -10000;
     double current;
-    int iMax = 2;
+    int iMax = 0;
     for(int i = 0; i < aRange; ++i) {
       current = qTable[startIndex + i];
       if(current > max) {
@@ -146,7 +172,6 @@ class QLearner {
     return iMax;
   }
 
-  //double reward(State i, int action, State j) { return 1; }
 }
 
 class Main {
@@ -210,13 +235,11 @@ class Main {
     QLearner ql = new QLearner(r);
     State s = new State((byte)9, (byte)0);
     for(int i = 0; i < 10000; ++i) {
-      ql.learn(s);
+      for(int j = 0; j < 1000000; ++j) {
+        s = ql.learn(s);
+      }
     }
     m.placeMoves(ql);
     m.print();
-
-    for(int i = 0; i < ql.qTable.length; ++i) {
-      System.out.print(ql.qTable[i] + ", ");
-    }
   }
 }
