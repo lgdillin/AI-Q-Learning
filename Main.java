@@ -121,10 +121,10 @@ class QLearner {
   boolean checkAction(State i, int action) {
     byte x = i.x;
     byte y = i.y;
-    if(action == 0) ++x;
-    else if(action == 1) ++y;
-    else if(action == 2) --x;
-    else --y;
+    if(action == 0) ++y;
+    else if(action == 1) --x;
+    else if(action == 2) --y;
+    else ++x;
     if(State.validate(x, y))
       return true;
     return false;
@@ -134,10 +134,10 @@ class QLearner {
   State doAction(State i, int action) {
     // 0: right; 1: up; 2: left; 4: down
     State j = new State(i.x, i.y);
-    if(action == 0) ++j.x;
-    else if(action == 1) ++j.y;
-    else if(action == 2) --j.x;
-    else --j.y;
+    if(action == 0) ++j.y;
+    else if(action == 1) --j.x;
+    else if(action == 2) --j.y;
+    else ++j.x;
     return j;
   }
 
@@ -150,7 +150,7 @@ class QLearner {
     }
 
     if(j.x == 0 && j.y == 19) {
-      return 2;
+      return 10;
     }
     return 0;
   }
@@ -234,12 +234,17 @@ class Main {
 
     QLearner ql = new QLearner(r);
     State s = new State((byte)9, (byte)0);
-    for(int i = 0; i < 10000; ++i) {
+    int iterations = 0;
+    for(int i = 0; i < 10; ++i) {
       for(int j = 0; j < 1000000; ++j) {
         s = ql.learn(s);
       }
+      iterations = iterations + 1000000;
+      System.out.println("====================");
+      System.out.println("iterations: " + iterations);
+      System.out.println("====================");
+      m.placeMoves(ql);
+      m.print();
     }
-    m.placeMoves(ql);
-    m.print();
   }
 }
